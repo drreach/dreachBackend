@@ -10,12 +10,194 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+enum Role {
+  NORMAL
+  DOCTOR
+  ADMIN
+}
 
-model User{
+enum Gender {
+  Male
+  Female
+}
 
-  id String @id @default(auto()) @map("_id") @db.ObjectId
-  name String
-  email String @unique
-  password String
+enum Status {
+  PENDING
+  APPROVED
+  REJECTED
+  COMPLETED
+  INITIATED
+}
 
+enum BloodGroup {
+  A_POSITIVE
+  A_NEGATIVE
+  B_POSITIVE
+  B_NEGATIVE
+  O_POSITIVE
+  O_NEGATIVE
+  AB_POSITIVE
+  AB_NEGATIVE
+}
+
+model User {
+  id         String      @id @default(auto()) @map("_id") @db.ObjectId
+  username   String      @unique
+  Fname      String?
+  Lname      String?
+  email      String      @unique
+  age        Int?
+  gender     Gender?
+  dob        String?
+  bloodGroup BloodGroup?
+  address    Address?
+  contact    String?
+  isActive   Boolean     @default(true)
+  profilePic String?
+
+  role           Role // Enum: "NORMAL", "DOCTOR", "ADMIN"
+  doctorProfile  DoctorProfile?
+  appointments   Appointment[]
+  medicalRecords MedicalRecord[]
+  userId         String          @unique
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
+  Rating         Rating[]
+}
+
+model DoctorProfile {
+  id                 String           @id @default(auto()) @map("_id") @db.ObjectId
+  userId             String           @unique @db.ObjectId
+  user               User             @relation(fields: [userId], references: [id])
+  appointments       Appointment[]
+  fee                Float?
+  experience         Int?
+  description        String?
+  mode               String? // "online", "offline", "ondesk", "hybrid"
+  isAvailableForDesk Boolean?         @default(false)
+  status             Status           @default(INITIATED)
+  schedules          Shedule?
+  educations         Education[]
+  workExperiences    WorkExperience[]
+  awards             Award[]
+  specializations    String[]
+  document           String?
+  medicalRecords     MedicalRecord[]
+  createdAt          DateTime         @default(now())
+  updatedAt          DateTime         @updatedAt
+  rating Rating[]
+}
+
+model Shedule {
+  id              String   @id @default(auto()) @map("_id") @db.ObjectId
+  doctorProfileId String   @unique @db.ObjectId
+  OnlineShedule   String[]
+  DeskShedule     String[]
+
+  doctorProfile DoctorProfile @relation(fields: [doctorProfileId], references: [id])
+}
+
+type Award {
+  date        String
+  title       String
+  description String
+}
+
+type DoctorSchedule {
+  mon TimeShedule[]
+  tue TimeShedule[]
+  wed TimeShedule[]
+  thu TimeShedule[]
+  fri TimeShedule[]
+  sat TimeShedule[]
+}
+
+type TimeShedule {
+  mode  String
+  start String
+  end   String
+}
+
+type Education {
+  university String
+  degree     String
+  duration   String
+}
+
+type WorkExperience {
+  clinic   String
+  duration String
+}
+
+// model Service {
+//   id              String        @id @default(auto()) @map("_id") @db.ObjectId
+//   doctorProfileId String        @db.ObjectId
+//   doctorProfile   DoctorProfile @relation(fields: [doctorProfileId], references: [id])
+//   name            String
+// }
+
+// model Specialization {
+//   id              String        @id @default(auto()) @map("_id") @db.ObjectId
+//   doctorProfileId String        @db.ObjectId
+//   doctorProfile   DoctorProfile @relation(fields: [doctorProfileId], references: [id])
+//   name            String
+// }
+
+model Rating {
+  id              String        @id @default(auto()) @map("_id") @db.ObjectId
+  doctorProfileId String        @db.ObjectId
+  doctorProfile   DoctorProfile @relation(fields: [doctorProfileId], references: [id])
+  score           Float?
+  comment         String?
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+  userId          String        @db.ObjectId
+  User            User          @relation(fields: [userId], references: [id])
+}
+
+type Address {
+  address String
+  city    String
+  state   String
+  country String
+  pincode String
+}
+
+model Appointment {
+  id                  String                 @id @default(auto()) @map("_id") @db.ObjectId
+  type                String // "online", "offline", "ondesk", "hybrid"
+  doctorProfileId     String                 @db.ObjectId
+  doctorProfile       DoctorProfile          @relation(fields: [doctorProfileId], references: [id])
+  userId              String                 @db.ObjectId
+  user                User                   @relation(fields: [userId], references: [id])
+  status              String // "pending", "accepted", "rejected", "completed"
+  CurrentLocation     CurreLocationLocation?
+  isForOthers         Boolean                @default(false)
+  othersName          String?
+  othersContact       String?
+  othersEmail         String?
+  appointmentSlotTime String
+  appointmentSlotDate DateTime
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model MedicalRecord {
+  id              String        @id @default(auto()) @map("_id") @db.ObjectId
+  userId          String        @unique @db.ObjectId
+  user            User          @relation(fields: [userId], references: [id])
+  doctorProfileId String        @unique @db.ObjectId
+  doctorProfile   DoctorProfile @relation(fields: [doctorProfileId], references: [id])
+  recordId        String
+  date            DateTime
+  description     String
+  attachment      String?
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+}
+
+type CurreLocationLocation {
+  lat  Float
+  long Float
 }
