@@ -63,6 +63,12 @@ export class DoctorService {
 
   async getSheudle(userId: string) {
     try {
+      const doctor = await this.prisma.doctorProfile.findUnique({
+        where: {
+          id: userId,
+        },
+      });
+
       const shedule = await this.prisma.shedule.findUnique({
         where: {
           doctorProfileId: userId,
@@ -73,12 +79,22 @@ export class DoctorService {
             select: {
               isAvailableForDesk: true,
               mode: true,
+              schedules:true
             },
           },
         },
       });
       console.log(shedule);
-      return shedule;
+      return shedule??{
+        doctorProfile:{
+          isAvailableForDesk:doctor?.isAvailableForDesk,
+          mode:doctor?.mode,
+          schedules:{
+            DeskShedule:[],
+            OnlineShedule:[]
+          }
+        }
+      };
     } catch (error) {
       console.log(error);
       throw new InternalServerErrorException('Internal Server Error');
@@ -148,7 +164,7 @@ export class DoctorService {
         const currentMinutes = currentTime.getMinutes();
 
         const availableSlots =
-          doctor.doctorProfile.schedules.OnlineShedule.filter(
+          doctor.doctorProfile.schedules?.OnlineShedule.filter(
             (slot) => {
               const slotHours = parseInt(slot.split(':')[0]);
               const slotMinutes = parseInt(slot.split(':')[1]);
@@ -168,7 +184,7 @@ export class DoctorService {
               return true;
             }
           );
-          const sortAvailableSlots = availableSlots.sort((a, b) => {
+          const sortAvailableSlots = availableSlots?  availableSlots.sort((a, b) => {
             const aHours = parseInt(a.split(':')[0]);
             const bHours = parseInt(b.split(':')[0]);
             if (aHours < bHours) {
@@ -179,7 +195,7 @@ export class DoctorService {
             }
             return 0;
           }
-          );
+          ):[]
 
 
 
@@ -481,6 +497,10 @@ export class DoctorService {
 
 
   async doctorDashboardInfo(doctorProfileId:string){
+    console.log(doctorProfileId);
+    if(!doctorProfileId){
+      throw new BadRequestException('Invalid doctorProfileId');
+    }
     try {
       const totalAppointments = await this.prisma.appointment.count({
         where:{
@@ -656,6 +676,7 @@ export class DoctorService {
 
 
   async actionOnPatients(dto:{doctorProfileId,userId:string,action:string,apptId:string}){
+    console.log(dto)
     try {
       const update = await this.prisma.appointment.update({
         where:{

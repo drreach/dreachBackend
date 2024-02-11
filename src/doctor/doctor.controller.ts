@@ -16,6 +16,7 @@ export class DoctorController {
 
   @Get('getShedules/:userId')
     async getShedules(@Param("userId") userId: string) {
+      console.log(userId)
         return this.doctorService.getSheudle(userId);
     }
  
@@ -52,7 +53,8 @@ export class DoctorController {
 
 
   @Get('getDashInfo/:doctorProfileId')
-  async getAppointments(@Param('userId') doctorProfileId: string) {
+  async getAppointments(@Param('doctorProfileId') doctorProfileId: string) {
+    
     return this.doctorService.doctorDashboardInfo(doctorProfileId);
   }
 
