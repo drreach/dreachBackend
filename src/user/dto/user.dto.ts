@@ -183,6 +183,12 @@ export class UpdateDoctorDetailsDto {
   @IsArray()
   educations: { university: string; degree: string; duration: string }[];
 
+
+  @IsOptional()
+  @IsArray()
+  clinicInfo: { clinicName: string; address: string; contact: string,images:[]}[];
+
+
   @IsOptional()
   @IsArray()
   workExperiences: { clinic: string; duration: string }[];
@@ -221,7 +227,8 @@ export class UpdateSheduleDto{
   @IsObject()
   shedule: {
     OnlineShedule:[],
-    DeskShedule:[]
+    DeskShedule:[],
+    HomeShedule:[]
   };
 }
 
@@ -249,8 +256,61 @@ export class bookAppointmentDTO{
     long: number;
   }
 
+  @IsString()
+  reason: string;
+
   @IsBoolean()
   isForOthers: boolean;
+
+  @IsOptional()
+  @IsString()
+  othersName: string;
+
+  @IsOptional()
+  @IsString()
+  othersContact: string;
+
+  @IsOptional()
+  @IsString()
+  othersEmail: string;
+
+
+}
+
+export class hybridBookAppointmentDTO{
+  @IsString()
+  homeDoctorId: string;
+
+  @IsString()
+  videoDoctorId: string;
+
+  @IsString()
+  userId: string;
+
+  @IsString()
+  h_apptDate: string;
+
+  @IsString()
+  h_slot: string;
+
+  @IsString()
+  v_apptDate: string;
+
+  @IsString()
+  v_slot: string;
+
+
+  @IsObject()
+  currentLocation:{
+    lat: number;
+    long: number;
+  }
+
+  @IsBoolean()
+  isForOthers: boolean;
+
+  @IsString()
+  reason: string;
 
   @IsOptional()
   @IsString()

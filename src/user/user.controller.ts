@@ -85,8 +85,21 @@ export class UserController {
   }
 
   @Get('findDoctorList')
-  async findDoctorList() {
-    return this.userService.findDoctorsList();
+  async findDoctorList(@Query() dto:{speciality:string,address:string}) {
+    console.log(dto)
+    return this.userService.findDoctorsList(dto);
+  }
+
+
+  @Get("findDoctorbyHomeVisit")
+  async findDoctorbyHomeVisit(){
+    return this.userService.findDoctorByHomeVisit();
+  }
+
+  @Get("findDoctorbyVideoConsultation")
+  async findDoctorByVideoConsultation(@Query() dto:{date:string,slot:string}){
+    console.log(dto)
+    return this.userService.findDoctorByVideoConsultation(dto);
   }
 
   @Get('getDoctorProfile/:username')

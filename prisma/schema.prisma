@@ -79,13 +79,22 @@ model DoctorProfile {
   schedules          Shedule?
   educations         Education[]
   workExperiences    WorkExperience[]
+  clinicInfo         ClinicInfo[]
   awards             Award[]
   specializations    String[]
   document           String?
   medicalRecords     MedicalRecord[]
   createdAt          DateTime         @default(now())
   updatedAt          DateTime         @updatedAt
-  rating Rating[]
+  rating             Rating[]
+}
+
+
+type ClinicInfo {
+  clinicName String
+  address    String
+  contact    String
+  images     String[]
 }
 
 model Shedule {
@@ -93,6 +102,7 @@ model Shedule {
   doctorProfileId String   @unique @db.ObjectId
   OnlineShedule   String[]
   DeskShedule     String[]
+  HomeShedule     String[]
 
   doctorProfile DoctorProfile @relation(fields: [doctorProfileId], references: [id])
 }
@@ -156,11 +166,11 @@ model Rating {
 }
 
 type Address {
-  address String
-  city    String
-  state   String
-  country String
-  pincode String
+  address String?
+  city    String?
+  state   String?
+  country String?
+  pincode String?
 }
 
 model Appointment {
@@ -175,6 +185,7 @@ model Appointment {
   isForOthers         Boolean                @default(false)
   othersName          String?
   othersContact       String?
+  reason              String
   othersEmail         String?
   appointmentSlotTime String
   appointmentSlotDate DateTime
@@ -190,7 +201,6 @@ model MedicalRecord {
   doctorProfileId String        @unique @db.ObjectId
   doctorProfile   DoctorProfile @relation(fields: [doctorProfileId], references: [id])
   recordId        String
-  date            DateTime
   description     String
   attachment      String?
   createdAt       DateTime      @default(now())

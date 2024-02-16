@@ -13,6 +13,7 @@ import { UtilsService } from './utils/utils.service';
 import { DoctorModule } from './doctor/doctor.module';
 import { StorageService } from './storage/storage.service';
 import { MulterModule } from '@nestjs/platform-express';
+import { GoogleMeetService } from './google.service';
 
 
 
@@ -21,6 +22,6 @@ import { MulterModule } from '@nestjs/platform-express';
     dest: './uploads', // Set your upload directory
   }) ],
   controllers: [UserController,AuthController,],
-  providers: [AuthService,PrismaService,UserService,JwtService,UtilsService, StorageService],
+  providers: [AuthService,PrismaService,UserService,JwtService,UtilsService, StorageService,GoogleMeetService],
 })
 export class AppModule {}
