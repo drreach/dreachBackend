@@ -55,13 +55,13 @@ export class DoctorController {
       username: string;
       userId: string;
       date: string;
-      startDate: string;
+      clientCurrentTimezone: string;
     },
   ) {
     // console.log(username,userId)
     console.log(dto);
 
-    return this.doctorService.sheduleThings(dto.username,new Date(dto.startDate),dto.userId)
+    return this.doctorService.getDoctorDetails(dto.username,new Date(dto.clientCurrentTimezone),dto.userId)
 
               
   }
@@ -72,27 +72,30 @@ export class DoctorController {
     dto: {
       username: string;
       userId: string;
-      date: string;
+      slectedDateByClient: string;
+      clientCurrentTimezone:string;
       slot: string;
+
     },
   ) {
     // console.log(username,userId)
 
     return this.doctorService.getSlotsByVideoConsult(
       dto.username,
-      dto.userId,
-      dto.date,
+      dto.slectedDateByClient,
+      dto.clientCurrentTimezone,
+      dto.userId, 
       dto.slot,
     );
   }    
 
   @Get('getdoctorProfilebyHome') 
   async getDoctorProfilebyHome(
-    @Query() dto: { username: string; userId: string },
+    @Query() dto: { username: string; userId: string ,clientCurrentTimezone:string},
   ) {
     // console.log(dto)
 
-    return this.doctorService.getSheduleByHome(dto.username, dto.userId);
+    return this.doctorService.getSheduleByHome(dto.username, new Date(dto.clientCurrentTimezone),dto.userId);
   }
 
   @Post('checkDoctorAvailability')
@@ -135,8 +138,8 @@ export class DoctorController {
   }
 
   @Get('getDashInfo/:doctorProfileId')
-  async getAppointments(@Param('doctorProfileId') doctorProfileId: string) {
-    return this.doctorService.doctorDashboardInfo(doctorProfileId);
+  async getAppointments(@Query() dto: {userId:string,currentLocalTime:string}) {
+    return this.doctorService.doctorDashboardInfo(dto.userId,new Date(dto.currentLocalTime));
   }
 
   @Get('getPatients/:doctorProfileId')

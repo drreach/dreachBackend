@@ -126,13 +126,11 @@ export class DoctorService {
     }
   }
 
-  async sheduleThings(username: string, dt: Date, userId?: string | undefined) {
-    const today = dt.toISOString().split('T')[0];
+  async getDoctorDetails(username: string, clientCurrentTimezone: Date, userId?: string | undefined) {
+    const today = clientCurrentTimezone.toISOString().split('T')[0];
 
-    console.log(username);
     try {
-      console.log(dt,username,userId);
-      const startDate = dt;
+      const startDate = clientCurrentTimezone;
       const numDays = 10;
 
       const slotDetails = [];
@@ -175,9 +173,9 @@ export class DoctorService {
           (appointment) => appointment.appointmentSlotTime,
         );
 
-        const currentTime = dt;
-        const currentHours = currentTime.getHours();
-        const currentMinutes = currentTime.getMinutes();
+        const currentDateTime = clientCurrentTimezone;
+        const currentHours = currentDateTime.getHours();
+        const currentMinutes = currentDateTime.getMinutes();
 
         const availableSlots =
           doctor.doctorProfile.mode === 'VIDEO_CONSULT' &&
@@ -204,7 +202,7 @@ export class DoctorService {
               })
             : [];
 
-        console.log(availableSlots);
+        // console.log(availableSlots);
 
         //for Desk Appointment
         const availableSlotsHome =
@@ -231,7 +229,7 @@ export class DoctorService {
                 return true;
               })
             : [];
-        console.log(availableSlotsHome);
+        // console.log(availableSlotsHome);
 
         //For desk
         const availableSlotsDesk =
@@ -304,7 +302,7 @@ export class DoctorService {
               })
             : [];
 
-        console.log(sortAvailableSlotsHome);
+        // console.log(sortAvailableSlotsHome);
 
         slotDetails.push({
           date: isoDate,
@@ -328,7 +326,7 @@ export class DoctorService {
           },
         });
 
-        console.log(bookedByCurrentUser);
+        // console.log(bookedByCurrentUser);
       }
 
       const isDoctorAppointedEver = await this.prisma.appointment.findFirst({
@@ -351,21 +349,19 @@ export class DoctorService {
     }
   }
 
-  convertToLocalTime(localTime: Date): Date {
-    // Adjust the local time to the USA timezone
-    // For example, if local timezone is UTC+5:30 and USA timezone is UTC-8,
-    // you'd subtract 13.5 hours (5:30 hours + 8 hours) from the local time
-    const usTimezoneOffset = -8 * 60; // Offset in minutes for US Pacific Time (UTC-8)
-    const serverTime = new Date(localTime.getTime() - (localTime.getTimezoneOffset() + usTimezoneOffset) * 60000);
+  // convertToLocalTime(localTime: Date): Date {
+  //   // Adjust the local time to the USA timezone
+  //   // For example, if local timezone is UTC+5:30 and USA timezone is UTC-8,
+  //   // you'd subtract 13.5 hours (5:30 hours + 8 hours) from the local time
+  //   const usTimezoneOffset = -8 * 60; // Offset in minutes for US Pacific Time (UTC-8)
+  //   const serverTime = new Date(localTime.getTime() - (localTime.getTimezoneOffset() + usTimezoneOffset) * 60000);
     
-    return serverTime;
-  }
-  async getSheduleByHome(username: string, userId?: string | undefined) {
-    const today = this.convertToLocalTime(new Date()).toISOString().split('T')[0];
-
-    console.log(typeof userId);
+  //   return serverTime;
+  // }
+  async getSheduleByHome(username: string,clientCurrentTimezone:Date, userId?: string | undefined) {
+    const today = clientCurrentTimezone.toISOString().split('T')[0];
     try {
-      const startDate = new Date();
+      const startDate = clientCurrentTimezone;
       const numDays = 10;
 
       const slotDetails = [];
@@ -385,15 +381,13 @@ export class DoctorService {
           },
         },
       });
-      console.log(doctor);
       if (!doctor) throw new UnauthorizedException('Unauthorized Access');
-
       for (let i = 0; i < numDays; i++) {
         const currentDate = new Date(startDate);
         currentDate.setDate(startDate.getDate() + i);
         const dateOnly = format(currentDate, 'yyyy-MM-dd');
         const isoDate = formatISO(dateOnly);
-        console.log(isoDate);
+  
         const appointments = await this.prisma.appointment.findMany({
           where: {
             doctorProfileId: doctor.doctorProfile.id,
@@ -409,9 +403,9 @@ export class DoctorService {
           (appointment) => appointment.appointmentSlotTime,
         );
 
-        const currentTime = new Date();
-        const currentHours = currentTime.getHours();
-        const currentMinutes = currentTime.getMinutes();
+        const currentDateTime = clientCurrentTimezone;
+        const currentHours = currentDateTime.getHours();
+        const currentMinutes = currentDateTime.getMinutes();
 
         //
         // console.log(availableSlots);
@@ -441,7 +435,6 @@ export class DoctorService {
                 return true;
               })
             : [];
-        console.log(availableSlotsHome);
 
         const sortAvailableSlotsHome =
           availableSlotsHome?.length > 0
@@ -458,7 +451,7 @@ export class DoctorService {
               })
             : [];
 
-        console.log(sortAvailableSlotsHome);
+   
 
         slotDetails.push({
           date: isoDate,
@@ -505,161 +498,162 @@ export class DoctorService {
     }
   }
 
-  async getDoctorProfileByVideo(
-    username: string,
-    userId?: string | undefined,
-    date?: string,
-    slots?: string,
-  ) {
-    const today =this.convertToLocalTime(new Date()).toISOString().split('T')[0];
+  // async getDoctorProfileByVideo(
+  //   username: string,
+  //   userId?: string | undefined,
+  //   date?: string,
+  //   slots?: string,
+  // ) {
+  //   const today =this.convertToLocalTime(new Date()).toISOString().split('T')[0];
 
-    console.log(typeof userId);
-    try {
-      const startDate = new Date(date);
-      const slotDetails = [];
-      const doctor = await this.prisma.user.findUnique({
-        where: {
-          username: username,
-        },
-        include: {
-          doctorProfile: {
-            include: {
-              schedules: true,
-            },
-          },
-        },
-      });
-      console.log(doctor);
-      if (!doctor) throw new UnauthorizedException('Unauthorized Access');
+  //   console.log(typeof userId);
+  //   try {
+  //     const startDate = new Date(date);
+  //     const slotDetails = [];
+  //     const doctor = await this.prisma.user.findUnique({
+  //       where: {
+  //         username: username,
+  //       },
+  //       include: {
+  //         doctorProfile: {
+  //           include: {
+  //             schedules: true,
+  //           },
+  //         },
+  //       },
+  //     });
+  //     console.log(doctor);
+  //     if (!doctor) throw new UnauthorizedException('Unauthorized Access');
 
-      const currentDate = new Date(startDate);
+  //     const currentDate = new Date(startDate);
 
-      const isoDate = formatISO(date);
-      console.log(isoDate);
-      const appointments = await this.prisma.appointment.findMany({
-        where: {
-          doctorProfileId: doctor.doctorProfile.id,
-          appointmentSlotDate: isoDate,
-        },
-        select: {
-          appointmentSlotTime: true,
-        },
-      });
+  //     const isoDate = formatISO(date);
+  //     console.log(isoDate);
+  //     const appointments = await this.prisma.appointment.findMany({
+  //       where: {
+  //         doctorProfileId: doctor.doctorProfile.id,
+  //         appointmentSlotDate: isoDate,
+  //       },
+  //       select: {
+  //         appointmentSlotTime: true,
+  //       },
+  //     });
 
-      const bookedSlots = appointments.map(
-        (appointment) => appointment.appointmentSlotTime,
-      );
+  //     const bookedSlots = appointments.map(
+  //       (appointment) => appointment.appointmentSlotTime,
+  //     );
 
-      const currentTime = new Date();
-      const currentHours = currentTime.getHours();
-      const currentMinutes = currentTime.getMinutes();
+  //     const currentTime = new Date();
+  //     const currentHours = currentTime.getHours();
+  //     const currentMinutes = currentTime.getMinutes();
 
-      const availableSlots =
-        doctor.doctorProfile.mode === 'VIDEO_CONSULT' &&
-        doctor.doctorProfile.schedules?.OnlineShedule
-          ? doctor.doctorProfile.schedules?.OnlineShedule.filter((slot) => {
-              const slotHours = parseInt(slot.split(':')[0]);
-              const slotMinutes = parseInt(slot.split(':')[1]);
-              if (
-                (currentDate.getDate() === startDate.getDate() &&
-                  slotHours < currentHours) ||
-                bookedSlots.includes(slot)
-              ) {
-                return false;
-              }
-              if (
-                (currentDate.getDate() === startDate.getDate() &&
-                  slotHours === currentHours &&
-                  slotMinutes < currentMinutes) ||
-                bookedSlots.includes(slot)
-              ) {
-                return false;
-              }
-              return true;
-            })
-          : [];
+  //     const availableSlots =
+  //       doctor.doctorProfile.mode === 'VIDEO_CONSULT' &&
+  //       doctor.doctorProfile.schedules?.OnlineShedule
+  //         ? doctor.doctorProfile.schedules?.OnlineShedule.filter((slot) => {
+  //             const slotHours = parseInt(slot.split(':')[0]);
+  //             const slotMinutes = parseInt(slot.split(':')[1]);
+  //             if (
+  //               (currentDate.getDate() === startDate.getDate() &&
+  //                 slotHours < currentHours) ||
+  //               bookedSlots.includes(slot)
+  //             ) {
+  //               return false;
+  //             }
+  //             if (
+  //               (currentDate.getDate() === startDate.getDate() &&
+  //                 slotHours === currentHours &&
+  //                 slotMinutes < currentMinutes) ||
+  //               bookedSlots.includes(slot)
+  //             ) {
+  //               return false;
+  //             }
+  //             return true;
+  //           })
+  //         : [];
 
-      console.log(availableSlots);
+  //     console.log(availableSlots);
 
-      // Add 30 minutes to each available slot
-      const availableSlotsAfter30Minutes = availableSlots.map((slot) => {
-        const [hours, minutes] = slot.split(':').map(Number);
-        const slotDate = new Date(date);
-        slotDate.setHours(hours, minutes);
-        slotDate.setMinutes(slotDate.getMinutes() + 30);
-        return format(slotDate, 'HH:mm');
-      });
+  //     // Add 30 minutes to each available slot
+  //     const availableSlotsAfter30Minutes = availableSlots.map((slot) => {
+  //       const [hours, minutes] = slot.split(':').map(Number);
+  //       const slotDate = new Date(date);
+  //       slotDate.setHours(hours, minutes);
+  //       slotDate.setMinutes(slotDate.getMinutes() + 30);
+  //       return format(slotDate, 'HH:mm');
+  //     });
 
-      console.log(availableSlotsAfter30Minutes);
+  //     console.log(availableSlotsAfter30Minutes);
 
-      const providedSlot = slots ? slots.split(':').map(Number) : null;
-      const availableSlotsAfterProvidedSlot =
-        availableSlotsAfter30Minutes.filter((slot) => {
-          if (!providedSlot) return false; // If no slot provided, no need to filter
-          const [hours, minutes] = slot.split(':').map(Number);
-          return hours >= providedSlot[0] && minutes >= providedSlot[1];
-        });
+  //     const providedSlot = slots ? slots.split(':').map(Number) : null;
+  //     const availableSlotsAfterProvidedSlot =
+  //       availableSlotsAfter30Minutes.filter((slot) => {
+  //         if (!providedSlot) return false; // If no slot provided, no need to filter
+  //         const [hours, minutes] = slot.split(':').map(Number);
+  //         return hours >= providedSlot[0] && minutes >= providedSlot[1];
+  //       });
 
-      const sortAvailableSlotsVideo =
-        availableSlotsAfterProvidedSlot.length > 0
-          ? availableSlotsAfterProvidedSlot.sort((a, b) => {
-              const aHours = parseInt(a.split(':')[0]);
-              const bHours = parseInt(b.split(':')[0]);
-              if (aHours < bHours) {
-                return -1;
-              }
-              if (aHours > bHours) {
-                return 1;
-              }
-              return 0;
-            })
-          : [];
+  //     const sortAvailableSlotsVideo =
+  //       availableSlotsAfterProvidedSlot.length > 0
+  //         ? availableSlotsAfterProvidedSlot.sort((a, b) => {
+  //             const aHours = parseInt(a.split(':')[0]);
+  //             const bHours = parseInt(b.split(':')[0]);
+  //             if (aHours < bHours) {
+  //               return -1;
+  //             }
+  //             if (aHours > bHours) {
+  //               return 1;
+  //             }
+  //             return 0;
+  //           })
+  //         : [];
 
-      slotDetails.push({
-        date: isoDate,
-        availableSlotsVideo: sortAvailableSlotsVideo,
-        bookedSlots: bookedSlots,
-      });
+  //     slotDetails.push({
+  //       date: isoDate,
+  //       availableSlotsVideo: sortAvailableSlotsVideo,
+  //       bookedSlots: bookedSlots,
+  //     });
 
-      let bookedByCurrentUser;
-      if (userId !== 'undefined') {
-        bookedByCurrentUser = await this.prisma.appointment.findFirst({
-          where: {
-            doctorProfileId: doctor.doctorProfile.id,
-            userId: userId,
-            appointmentSlotDate: {
-              gte: formatISO(today),
-            },
-          },
-        });
+  //     let bookedByCurrentUser;
+  //     if (userId !== 'undefined') {
+  //       bookedByCurrentUser = await this.prisma.appointment.findFirst({
+  //         where: {
+  //           doctorProfileId: doctor.doctorProfile.id,
+  //           userId: userId,
+  //           appointmentSlotDate: {
+  //             gte: formatISO(today),
+  //           },
+  //         },
+  //       });
 
-        console.log(bookedByCurrentUser);
-      }
+  //       console.log(bookedByCurrentUser);
+  //     }
 
-      const isDoctorAppointedEver = await this.prisma.appointment.findFirst({
-        where: {
-          doctorProfileId: doctor.doctorProfile.id,
-          status: 'APPROVED',
-        },
-      });
+  //     const isDoctorAppointedEver = await this.prisma.appointment.findFirst({
+  //       where: {
+  //         doctorProfileId: doctor.doctorProfile.id,
+  //         status: 'APPROVED',
+  //       },
+  //     });
 
-      return {
-        slotDetails,
-        doctor,
-        isBookedByCurrentUser: bookedByCurrentUser ? true : false,
-        status: bookedByCurrentUser?.status,
-        isDoctorAppointedEver: isDoctorAppointedEver ? true : false,
-      };
-    } catch (error) {
-      console.log(error);
-      throw new InternalServerErrorException('Something went wrong');
-    }
-  }
+  //     return {
+  //       slotDetails,
+  //       doctor,
+  //       isBookedByCurrentUser: bookedByCurrentUser ? true : false,
+  //       status: bookedByCurrentUser?.status,
+  //       isDoctorAppointedEver: isDoctorAppointedEver ? true : false,
+  //     };
+  //   } catch (error) {
+  //     console.log(error);
+  //     throw new InternalServerErrorException('Something went wrong');
+  //   }
+  // }
 
   async getSlotsByVideoConsult(
     username: string,
+    slectedDateByClient: string,
+    clientCurrentTimezone:string,
     userId?: string | undefined,
-    date?: string,
     slots?: string,
   ) {
     try {
@@ -677,10 +671,13 @@ export class DoctorService {
       });
 
       if (!doctor) throw new UnauthorizedException('Unauthorized Access');
-      console.log(date);
-      const currentDate = new Date(date);
-      const isoDate = formatISO(date);
-      // get all appointments for the given date
+
+
+      const selectedDate = new Date(slectedDateByClient);
+      const isoDate = formatISO(selectedDate); //converting the to iso format
+
+
+      // get all appointments for the given date using Iso date
       const appointments = await this.prisma.appointment.findMany({
         where: {
           doctorProfileId: doctor.doctorProfile.id,
@@ -691,22 +688,21 @@ export class DoctorService {
         },
       });
 
+      //getting the booked slots
       const bookedSlots = appointments.map(
         (appointment) => appointment.appointmentSlotTime,
       );
-      console.log(doctor.doctorProfile.schedules.OnlineShedule);
 
+      //getting the slot hr and slot min for comparing the available slots in the given time range
       const givenSlotHr = slots.split(':')[0];
       const givenSlotMin = slots.split(':')[1];
 
       const totalslotTime =
         parseInt(givenSlotHr) * 60 + parseInt(givenSlotMin) + 30;
 
-      const currentTime = new Date();
-      const currentDt = currentTime.getDate();
-      const currentHours = currentTime.getHours();
-      const currentMinutes = currentTime.getMinutes();
-      const totoalCurrentTime = currentHours * 60 + currentMinutes;
+      const currentDateTime = new Date(clientCurrentTimezone);
+      const currentDate = currentDateTime.getDate();
+     
       //filter the appointments slots available after 30 min
       const availableSlots =
         doctor.doctorProfile.schedules.OnlineShedule.filter((slot) => {
@@ -715,22 +711,22 @@ export class DoctorService {
             parseInt(slot.split(':')[0]) * 60 + parseInt(slot.split(':')[1]);
           console.log(
             slot,
-            currentDate.getDate(),
-            currentDt,
+            selectedDate.getDate(),
+            currentDate,
             totalslotTime,
             sltTotalmin,
             slots,
           );
           if (
-            currentDate.getDate() < currentDt ||
-            (currentDate.getDate() === currentDt &&
+            selectedDate.getDate() < currentDate ||
+            (selectedDate.getDate() === currentDate &&
               totalslotTime > sltTotalmin) ||
             bookedSlots.includes(slot)
           ) {
             return false;
           }
           if (
-            (currentDate.getDate() > currentDt &&
+            (selectedDate.getDate() > currentDate &&
               totalslotTime > sltTotalmin) ||
             bookedSlots.includes(slot) ||
             sltTotalmin > totalslotTime + 30
@@ -756,7 +752,7 @@ export class DoctorService {
           : [];
 
       console.log(sortAvailableSlotsVideo);
-      const today = this.convertToLocalTime(new Date()).toISOString().split('T')[0];
+      const today = new Date(clientCurrentTimezone).toISOString().split('T')[0];
 
       let bookedByCurrentUser;
       if (userId !== 'undefined') {
@@ -1279,8 +1275,8 @@ export class DoctorService {
     }
   }
 
-  async doctorDashboardInfo(doctorProfileId: string) {
-    console.log(doctorProfileId);
+  async doctorDashboardInfo(doctorProfileId: string,currentLocalTime:Date) {
+    // console.log(doctorProfileId);
     if (!doctorProfileId) {
       throw new BadRequestException('Invalid doctorProfileId');
     }
@@ -1313,7 +1309,7 @@ export class DoctorService {
       });
 
       //getToday date
-      const today =this.convertToLocalTime(new Date()).toISOString().split('T')[0];
+      const today =currentLocalTime.toISOString().split('T')[0];
 
       // const todayAppointments = await this.prisma.appointment.count({
       //   where:{
@@ -1353,7 +1349,7 @@ export class DoctorService {
         where: {
           doctorProfileId: doctorProfileId,
           appointmentSlotDate: {
-            gt: formatISO(new Date()),
+            gt: formatISO(currentLocalTime),
           },
         },
 
