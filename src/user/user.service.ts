@@ -686,6 +686,16 @@ export class UserService {
   //   }
   // }
 
+   convertToLocalTime(localTime: Date): Date {
+    // Adjust the local time to the USA timezone
+    // For example, if local timezone is UTC+5:30 and USA timezone is UTC-8,
+    // you'd subtract 13.5 hours (5:30 hours + 8 hours) from the local time
+    const usTimezoneOffset = -8 * 60; // Offset in minutes for US Pacific Time (UTC-8)
+    const serverTime = new Date(localTime.getTime() - (localTime.getTimezoneOffset() + usTimezoneOffset) * 60000);
+    
+    return serverTime;
+  }
+
   async getSlotsByVideoConsult(
     username: string,
     userId?: string | undefined,
@@ -710,7 +720,7 @@ export class UserService {
       console.log(date);
       const currentDate = new Date(date);
       const isoDate = formatISO(date);
-      // get all appointments for the given date
+   
       const appointments = await this.prisma.appointment.findMany({
         where: {
           doctorProfileId: doctor.doctorProfile.id,
@@ -732,7 +742,7 @@ export class UserService {
       const totalslotTime =
         parseInt(givenSlotHr) * 60 + parseInt(givenSlotMin) + 30;
 
-      const currentTime = new Date();
+      const currentTime = this.convertToLocalTime(new Date());
       const currentDt = currentTime.getDate();
       const currentHours = currentTime.getHours();
       const currentMinutes = currentTime.getMinutes();
@@ -811,7 +821,7 @@ export class UserService {
         parseInt(dto.slot.split(':')[0]) * 60 +
         parseInt(dto.slot.split(':')[1]);
 
-      const currentTime = new Date();
+      const currentTime = this.convertToLocalTime(new Date());
       const currentDt = currentTime.getDate();
       const currentHours = currentTime.getHours();
       const currentMinutes = currentTime.getMinutes();

@@ -100,7 +100,7 @@ export class DoctorService {
             schedules: {
               DeskShedule: [],
               OnlineShedule: [],
-              HomeShedule:[]
+              HomeShedule: [],
             },
           },
         }
@@ -126,12 +126,13 @@ export class DoctorService {
     }
   }
 
-  async sheduleThings(username: string, userId?: string | undefined) {
-    const today = new Date().toISOString().split('T')[0];
+  async sheduleThings(username: string, dt: Date, userId?: string | undefined) {
+    const today = this.convertToLocalTime(new Date()).toISOString().split('T')[0];
 
-    console.log(typeof userId);
+    console.log(username);
     try {
-      const startDate = new Date();
+      console.log(dt,username,userId);
+      const startDate = this.convertToLocalTime(new Date());
       const numDays = 10;
 
       const slotDetails = [];
@@ -163,6 +164,7 @@ export class DoctorService {
           where: {
             doctorProfileId: doctor.doctorProfile.id,
             appointmentSlotDate: isoDate,
+            status:{in:["APPROVED","PENDING"]}
           },
           select: {
             appointmentSlotTime: true,
@@ -322,6 +324,7 @@ export class DoctorService {
             appointmentSlotDate: {
               gte: formatISO(today),
             },
+          
           },
         });
 
@@ -348,8 +351,17 @@ export class DoctorService {
     }
   }
 
+  convertToLocalTime(localTime: Date): Date {
+    // Adjust the local time to the USA timezone
+    // For example, if local timezone is UTC+5:30 and USA timezone is UTC-8,
+    // you'd subtract 13.5 hours (5:30 hours + 8 hours) from the local time
+    const usTimezoneOffset = -8 * 60; // Offset in minutes for US Pacific Time (UTC-8)
+    const serverTime = new Date(localTime.getTime() - (localTime.getTimezoneOffset() + usTimezoneOffset) * 60000);
+    
+    return serverTime;
+  }
   async getSheduleByHome(username: string, userId?: string | undefined) {
-    const today = new Date().toISOString().split('T')[0];
+    const today = this.convertToLocalTime(new Date()).toISOString().split('T')[0];
 
     console.log(typeof userId);
     try {
@@ -499,7 +511,7 @@ export class DoctorService {
     date?: string,
     slots?: string,
   ) {
-    const today = new Date().toISOString().split('T')[0];
+    const today =this.convertToLocalTime(new Date()).toISOString().split('T')[0];
 
     console.log(typeof userId);
     try {
@@ -744,7 +756,7 @@ export class DoctorService {
           : [];
 
       console.log(sortAvailableSlotsVideo);
-      const today = new Date().toISOString().split('T')[0];
+      const today = this.convertToLocalTime(new Date()).toISOString().split('T')[0];
 
       let bookedByCurrentUser;
       if (userId !== 'undefined') {
@@ -787,6 +799,7 @@ export class DoctorService {
           doctorProfileId: doctorId,
           appointmentSlotDate: formatISO(date),
           type: mode,
+          status: {in:["APPROVED","PENDING"]},
         },
         select: {
           appointmentSlotTime: true,
@@ -964,6 +977,7 @@ export class DoctorService {
           doctorProfileId: doctorId,
           // appointmentSlotDate: date,
           type: mode,
+          status: {in:["APPROVED","PENDING"]},
         },
         select: {
           appointmentSlotTime: true,
@@ -1003,20 +1017,19 @@ export class DoctorService {
         availableSlots = doctor.schedules.HomeShedule.filter(
           (s) => !bookedSlots.includes(s),
         );
-      }else if(mode === 'VIDEO_CONSULT'){
+      } else if (mode === 'VIDEO_CONSULT') {
         availableSlots = doctor.schedules.OnlineShedule.filter(
           (s) => !bookedSlots.includes(s),
         );
-      }else if(mode === 'CLINIC_VISIT'){
+      } else if (mode === 'CLINIC_VISIT') {
         availableSlots = doctor.schedules.DeskShedule.filter(
           (s) => !bookedSlots.includes(s),
         );
       }
 
-
       console.log('availableSlots:', availableSlots, 'givenSlots', slot);
 
-      return availableSlots?availableSlots.includes(slot):false;
+      return availableSlots ? availableSlots.includes(slot) : false;
     } catch (error) {
       console.log(error);
       throw new InternalServerErrorException('Internal Server Error');
@@ -1223,7 +1236,7 @@ export class DoctorService {
             appointmentSlotTime: dto.h_slot,
             type: 'HOME_VISIT',
             status: 'PENDING',
-            reason:dto.reason,
+            reason: dto.reason,
           },
         }),
         this.prisma.appointment.create({
@@ -1234,7 +1247,7 @@ export class DoctorService {
             appointmentSlotTime: dto.v_slot,
             type: 'VIDEO_CONSULT',
             status: 'PENDING',
-            reason:dto.reason,
+            reason: dto.reason,
           },
         }),
       ]);
@@ -1300,7 +1313,7 @@ export class DoctorService {
       });
 
       //getToday date
-      const today = new Date().toISOString().split('T')[0];
+      const today =this.convertToLocalTime(new Date()).toISOString().split('T')[0];
 
       // const todayAppointments = await this.prisma.appointment.count({
       //   where:{
