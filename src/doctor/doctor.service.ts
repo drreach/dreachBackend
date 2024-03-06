@@ -127,12 +127,12 @@ export class DoctorService {
   }
 
   async sheduleThings(username: string, dt: Date, userId?: string | undefined) {
-    const today = this.convertToLocalTime(new Date()).toISOString().split('T')[0];
+    const today = dt.toISOString().split('T')[0];
 
     console.log(username);
     try {
       console.log(dt,username,userId);
-      const startDate = this.convertToLocalTime(new Date());
+      const startDate = dt;
       const numDays = 10;
 
       const slotDetails = [];
