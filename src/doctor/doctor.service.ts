@@ -175,7 +175,7 @@ export class DoctorService {
           (appointment) => appointment.appointmentSlotTime,
         );
 
-        const currentTime = new Date();
+        const currentTime = dt;
         const currentHours = currentTime.getHours();
         const currentMinutes = currentTime.getMinutes();
 
