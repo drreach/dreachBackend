@@ -49,6 +49,16 @@ export class DoctorController {
     return this.doctorService.uploadDoctorProfile(dto.userId, file);
   }
 
+
+  getLocalTimezone(){
+    const currentDateInServerTimeZone = new Date();
+
+    // Calculate the time difference between the server's local time zone and the Indian Standard Time zone (IST)
+    const istOffsetMilliseconds = 5.5 * 60 * 60 * 1000; // IST is 5 hours and 30 minutes ahead of UTC
+    const s = new Date(currentDateInServerTimeZone.getTime() + istOffsetMilliseconds);
+    return s;
+  }
+
   @Get('getDoctorProfile')
   async getDoctorProfile(
     @Query()
@@ -60,20 +70,11 @@ export class DoctorController {
     },
   ) {
    
-  const currentDateInServerTimeZone = new Date();
 
-  // Calculate the time difference between the server's local time zone and the Indian Standard Time zone (IST)
-  const istOffsetMilliseconds = 5.5 * 60 * 60 * 1000; // IST is 5 hours and 30 minutes ahead of UTC
-  
-  // Adjust the time to reflect the Indian Standard Time zone (IST)
-
-  const t = `${currentDateInServerTimeZone.getTime()+istOffsetMilliseconds}`;
-  const s = new Date(currentDateInServerTimeZone.getTime() + istOffsetMilliseconds);
   
 
-    console.log(s);
 
-    return this.doctorService.getDoctorDetails(dto.username,s,dto.userId)
+    return this.doctorService.getDoctorDetails(dto.username,this.getLocalTimezone(),dto.userId)
 
               
   }
@@ -85,7 +86,6 @@ export class DoctorController {
       username: string;
       userId: string;
       slectedDateByClient: string;
-      clientCurrentTimezone:string;
       slot: string;
 
     },
@@ -95,7 +95,7 @@ export class DoctorController {
     return this.doctorService.getSlotsByVideoConsult(
       dto.username,
       dto.slectedDateByClient,
-      dto.clientCurrentTimezone,
+      this.getLocalTimezone(),
       dto.userId, 
       dto.slot,
     );
@@ -103,11 +103,11 @@ export class DoctorController {
 
   @Get('getdoctorProfilebyHome') 
   async getDoctorProfilebyHome(
-    @Query() dto: { username: string; userId: string ,clientCurrentTimezone:string},
+    @Query() dto: { username: string; userId: string},
   ) {
     // console.log(dto)
 
-    return this.doctorService.getSheduleByHome(dto.username, new Date(dto.clientCurrentTimezone),dto.userId);
+    return this.doctorService.getSheduleByHome(dto.username,this.getLocalTimezone(),dto.userId);
   }
 
   @Post('checkDoctorAvailability')
@@ -150,8 +150,8 @@ export class DoctorController {
   }
 
   @Get('getDashInfo/:doctorProfileId')
-  async getAppointments(@Query() dto: {userId:string,currentLocalTime:string}) {
-    return this.doctorService.doctorDashboardInfo(dto.userId,new Date(dto.currentLocalTime));
+  async getAppointments(@Query() dto: {userId:string}) {
+    return this.doctorService.doctorDashboardInfo(dto.userId,this.getLocalTimezone());
   }
 
   @Get('getPatients/:doctorProfileId')
@@ -164,7 +164,7 @@ export class DoctorController {
     @Body()
     dto: {
       apptId: string;
-      doctorProfileId;
+      doctorProfileId:string
       userId: string;
       action: string;
     },

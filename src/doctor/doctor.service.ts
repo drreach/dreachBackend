@@ -19,6 +19,7 @@ import {
 import { ExceptionMessages } from '@google-cloud/storage/build/cjs/src/storage';
 
 import { format, formatISO } from 'date-fns';
+import moment from 'moment';
 
 @Injectable()
 export class DoctorService {
@@ -127,6 +128,8 @@ export class DoctorService {
   }
 
   async getDoctorDetails(username: string, clientCurrentTimezone: Date, userId?: string | undefined) {
+
+    
     const today = clientCurrentTimezone.toISOString().split('T')[0];
 
     try {
@@ -652,7 +655,7 @@ export class DoctorService {
   async getSlotsByVideoConsult(
     username: string,
     slectedDateByClient: string,
-    clientCurrentTimezone:string,
+    clientCurrentTimezone:Date,
     userId?: string | undefined,
     slots?: string,
   ) {
@@ -700,7 +703,7 @@ export class DoctorService {
       const totalslotTime =
         parseInt(givenSlotHr) * 60 + parseInt(givenSlotMin) + 30;
 
-      const currentDateTime = new Date(clientCurrentTimezone);
+      const currentDateTime = clientCurrentTimezone
       const currentDate = currentDateTime.getDate();
      
       //filter the appointments slots available after 30 min
@@ -752,7 +755,7 @@ export class DoctorService {
           : [];
 
       console.log(sortAvailableSlotsVideo);
-      const today = new Date(clientCurrentTimezone).toISOString().split('T')[0];
+      const today = clientCurrentTimezone.toISOString().split('T')[0];
 
       let bookedByCurrentUser;
       if (userId !== 'undefined') {
