@@ -3,6 +3,8 @@
 /node_modules
 
 # Logs
+
+.googleapis.json
 logs
 *.log
 npm-debug.log*

@@ -15,7 +15,6 @@ import {
   hybridBookAppointmentDTO,
 } from 'src/user/dto/user.dto';
 import { formatISO } from 'date-fns';
-import { GoogleMeetService } from 'src/google.service';
 import moment from 'moment';
 import { UpdateDoctorDetailsDto, UpdateSheduleDto } from './dto/dto';
 
@@ -23,7 +22,6 @@ import { UpdateDoctorDetailsDto, UpdateSheduleDto } from './dto/dto';
 export class DoctorController {
   constructor(
     private readonly doctorService: DoctorService,
-    private readonly meetService: GoogleMeetService,
   ) {}
 
   @Post('updateDoctorProfile')
