@@ -12,7 +12,6 @@ import { Readable } from 'stream';
 import * as fs from 'fs';
 import * as sharp from 'sharp';
 import {
-  UpdateSheduleDto,
   bookAppointmentDTO,
   hybridBookAppointmentDTO,
 } from 'src/user/dto/user.dto';
@@ -20,6 +19,7 @@ import { ExceptionMessages } from '@google-cloud/storage/build/cjs/src/storage';
 
 import { format, formatISO } from 'date-fns';
 import moment from 'moment';
+import { UpdateDoctorDetailsDto, UpdateSheduleDto } from './dto/dto';
 
 @Injectable()
 export class DoctorService {
@@ -27,6 +27,80 @@ export class DoctorService {
     private readonly prisma: PrismaService,
     private readonly storageService: StorageService,
   ) {}
+
+  async updateDoctorsProfileDetails(doctorProfile: UpdateDoctorDetailsDto) {
+    const {
+      doctorProfileId,
+      Fname,
+      Lname,
+      age,
+      dob,
+      bloodGroup,
+      address,
+      contact,
+      ...res
+    } = doctorProfile;
+
+    const user = await this.prisma.user.findUnique({
+      where: {
+        id: doctorProfile.userId,
+      },
+    });
+    if (!user) throw new NotFoundException('User not found');
+    console.log(user);
+
+    const doctor = await this.prisma.doctorProfile.findUnique({
+      where: {
+        id: doctorProfileId,
+      },
+      select: {
+        document: true,
+      },
+    });
+
+    if (!doctor) throw new NotFoundException('Documrn not found');
+    if (!doctor.document) throw new NotFoundException('Document not found');
+
+    const updateUserProfile = await this.prisma.user.update({
+      where: {
+        id: doctorProfile.userId,
+      },
+      data: {
+        Fname: Fname,
+        Lname: Lname,
+        dob: dob,
+        bloodGroup: bloodGroup as any,
+        address: address,
+        contact: contact,
+        gender: doctorProfile.gender as any,
+      },
+    });
+    const isDoctorExist = await this.prisma.doctorProfile.findUnique({
+      where: {
+        id: doctorProfileId,
+      },
+    });
+
+    if (!isDoctorExist) throw new NotFoundException('Doctor not found');
+
+    const updatedUser = await this.prisma.doctorProfile.update({
+      where: {
+        id: doctorProfileId,
+      },
+      data: {
+        ...res,
+        status: isDoctorExist.status === 'APPROVED' ? 'APPROVED' : 'PENDING',
+      },
+      include: {
+        user: true,
+      },
+    });
+
+    if (!updatedUser)
+      throw new InternalServerErrorException('Something went wrong');
+
+    return updatedUser;
+  }
 
   async updatShedule(dto: UpdateSheduleDto) {
     try {
@@ -66,6 +140,30 @@ export class DoctorService {
     } catch (error) {
       console.log(error);
       throw new InternalServerErrorException('Internal Server Error');
+    }
+  }
+
+  //get Doctor by id
+
+  async getDoctorById(userId: string) {
+    try {
+      const doctor = await this.prisma.doctorProfile.findUnique({
+        where: {
+          userId: userId,
+        },
+        include: {
+          user: true,
+        },
+      });
+
+      if (!doctor) throw new NotFoundException('User not found');
+      return doctor;
+    } catch (error) {
+      if (error instanceof NotFoundException) {
+        throw error;
+      }
+      console.log(error);
+      throw new InternalServerErrorException('Internal Server Error!');
     }
   }
 
@@ -127,9 +225,11 @@ export class DoctorService {
     }
   }
 
-  async getDoctorDetails(username: string, clientCurrentTimezone: Date, userId?: string | undefined) {
-
-    
+  async getDoctorDetails(
+    username: string,
+    clientCurrentTimezone: Date,
+    userId?: string | undefined,
+  ) {
     const today = clientCurrentTimezone.toISOString().split('T')[0];
 
     try {
@@ -165,7 +265,7 @@ export class DoctorService {
           where: {
             doctorProfileId: doctor.doctorProfile.id,
             appointmentSlotDate: isoDate,
-            status:{in:["APPROVED","PENDING"]}
+            status: { in: ['APPROVED', 'PENDING'] },
           },
           select: {
             appointmentSlotTime: true,
@@ -325,7 +425,6 @@ export class DoctorService {
             appointmentSlotDate: {
               gte: formatISO(today),
             },
-          
           },
         });
 
@@ -358,10 +457,14 @@ export class DoctorService {
   //   // you'd subtract 13.5 hours (5:30 hours + 8 hours) from the local time
   //   const usTimezoneOffset = -8 * 60; // Offset in minutes for US Pacific Time (UTC-8)
   //   const serverTime = new Date(localTime.getTime() - (localTime.getTimezoneOffset() + usTimezoneOffset) * 60000);
-    
+
   //   return serverTime;
   // }
-  async getSheduleByHome(username: string,clientCurrentTimezone:Date, userId?: string | undefined) {
+  async getSheduleByHome(
+    username: string,
+    clientCurrentTimezone: Date,
+    userId?: string | undefined,
+  ) {
     const today = clientCurrentTimezone.toISOString().split('T')[0];
     try {
       const startDate = clientCurrentTimezone;
@@ -390,7 +493,7 @@ export class DoctorService {
         currentDate.setDate(startDate.getDate() + i);
         const dateOnly = format(currentDate, 'yyyy-MM-dd');
         const isoDate = formatISO(dateOnly);
-  
+
         const appointments = await this.prisma.appointment.findMany({
           where: {
             doctorProfileId: doctor.doctorProfile.id,
@@ -454,8 +557,6 @@ export class DoctorService {
               })
             : [];
 
-   
-
         slotDetails.push({
           date: isoDate,
           availableSlotsVideo: [],
@@ -501,161 +602,10 @@ export class DoctorService {
     }
   }
 
-  // async getDoctorProfileByVideo(
-  //   username: string,
-  //   userId?: string | undefined,
-  //   date?: string,
-  //   slots?: string,
-  // ) {
-  //   const today =this.convertToLocalTime(new Date()).toISOString().split('T')[0];
-
-  //   console.log(typeof userId);
-  //   try {
-  //     const startDate = new Date(date);
-  //     const slotDetails = [];
-  //     const doctor = await this.prisma.user.findUnique({
-  //       where: {
-  //         username: username,
-  //       },
-  //       include: {
-  //         doctorProfile: {
-  //           include: {
-  //             schedules: true,
-  //           },
-  //         },
-  //       },
-  //     });
-  //     console.log(doctor);
-  //     if (!doctor) throw new UnauthorizedException('Unauthorized Access');
-
-  //     const currentDate = new Date(startDate);
-
-  //     const isoDate = formatISO(date);
-  //     console.log(isoDate);
-  //     const appointments = await this.prisma.appointment.findMany({
-  //       where: {
-  //         doctorProfileId: doctor.doctorProfile.id,
-  //         appointmentSlotDate: isoDate,
-  //       },
-  //       select: {
-  //         appointmentSlotTime: true,
-  //       },
-  //     });
-
-  //     const bookedSlots = appointments.map(
-  //       (appointment) => appointment.appointmentSlotTime,
-  //     );
-
-  //     const currentTime = new Date();
-  //     const currentHours = currentTime.getHours();
-  //     const currentMinutes = currentTime.getMinutes();
-
-  //     const availableSlots =
-  //       doctor.doctorProfile.mode === 'VIDEO_CONSULT' &&
-  //       doctor.doctorProfile.schedules?.OnlineShedule
-  //         ? doctor.doctorProfile.schedules?.OnlineShedule.filter((slot) => {
-  //             const slotHours = parseInt(slot.split(':')[0]);
-  //             const slotMinutes = parseInt(slot.split(':')[1]);
-  //             if (
-  //               (currentDate.getDate() === startDate.getDate() &&
-  //                 slotHours < currentHours) ||
-  //               bookedSlots.includes(slot)
-  //             ) {
-  //               return false;
-  //             }
-  //             if (
-  //               (currentDate.getDate() === startDate.getDate() &&
-  //                 slotHours === currentHours &&
-  //                 slotMinutes < currentMinutes) ||
-  //               bookedSlots.includes(slot)
-  //             ) {
-  //               return false;
-  //             }
-  //             return true;
-  //           })
-  //         : [];
-
-  //     console.log(availableSlots);
-
-  //     // Add 30 minutes to each available slot
-  //     const availableSlotsAfter30Minutes = availableSlots.map((slot) => {
-  //       const [hours, minutes] = slot.split(':').map(Number);
-  //       const slotDate = new Date(date);
-  //       slotDate.setHours(hours, minutes);
-  //       slotDate.setMinutes(slotDate.getMinutes() + 30);
-  //       return format(slotDate, 'HH:mm');
-  //     });
-
-  //     console.log(availableSlotsAfter30Minutes);
-
-  //     const providedSlot = slots ? slots.split(':').map(Number) : null;
-  //     const availableSlotsAfterProvidedSlot =
-  //       availableSlotsAfter30Minutes.filter((slot) => {
-  //         if (!providedSlot) return false; // If no slot provided, no need to filter
-  //         const [hours, minutes] = slot.split(':').map(Number);
-  //         return hours >= providedSlot[0] && minutes >= providedSlot[1];
-  //       });
-
-  //     const sortAvailableSlotsVideo =
-  //       availableSlotsAfterProvidedSlot.length > 0
-  //         ? availableSlotsAfterProvidedSlot.sort((a, b) => {
-  //             const aHours = parseInt(a.split(':')[0]);
-  //             const bHours = parseInt(b.split(':')[0]);
-  //             if (aHours < bHours) {
-  //               return -1;
-  //             }
-  //             if (aHours > bHours) {
-  //               return 1;
-  //             }
-  //             return 0;
-  //           })
-  //         : [];
-
-  //     slotDetails.push({
-  //       date: isoDate,
-  //       availableSlotsVideo: sortAvailableSlotsVideo,
-  //       bookedSlots: bookedSlots,
-  //     });
-
-  //     let bookedByCurrentUser;
-  //     if (userId !== 'undefined') {
-  //       bookedByCurrentUser = await this.prisma.appointment.findFirst({
-  //         where: {
-  //           doctorProfileId: doctor.doctorProfile.id,
-  //           userId: userId,
-  //           appointmentSlotDate: {
-  //             gte: formatISO(today),
-  //           },
-  //         },
-  //       });
-
-  //       console.log(bookedByCurrentUser);
-  //     }
-
-  //     const isDoctorAppointedEver = await this.prisma.appointment.findFirst({
-  //       where: {
-  //         doctorProfileId: doctor.doctorProfile.id,
-  //         status: 'APPROVED',
-  //       },
-  //     });
-
-  //     return {
-  //       slotDetails,
-  //       doctor,
-  //       isBookedByCurrentUser: bookedByCurrentUser ? true : false,
-  //       status: bookedByCurrentUser?.status,
-  //       isDoctorAppointedEver: isDoctorAppointedEver ? true : false,
-  //     };
-  //   } catch (error) {
-  //     console.log(error);
-  //     throw new InternalServerErrorException('Something went wrong');
-  //   }
-  // }
-
   async getSlotsByVideoConsult(
     username: string,
     slectedDateByClient: string,
-    clientCurrentTimezone:Date,
+    clientCurrentTimezone: Date,
     userId?: string | undefined,
     slots?: string,
   ) {
@@ -675,12 +625,10 @@ export class DoctorService {
 
       if (!doctor) throw new UnauthorizedException('Unauthorized Access');
 
-
       const selectedDate = new Date(slectedDateByClient);
       const isoDate = formatISO(selectedDate); //converting the to iso format
 
-      console.log(selectedDate,slectedDateByClient,isoDate)
-
+      console.log(selectedDate, slectedDateByClient, isoDate);
 
       // get all appointments for the given date using Iso date
       const appointments = await this.prisma.appointment.findMany({
@@ -705,9 +653,9 @@ export class DoctorService {
       const totalslotTime =
         parseInt(givenSlotHr) * 60 + parseInt(givenSlotMin) + 30;
 
-      const currentDateTime = clientCurrentTimezone
+      const currentDateTime = clientCurrentTimezone;
       const currentDate = currentDateTime.getDate();
-     
+
       //filter the appointments slots available after 30 min
       const availableSlots =
         doctor.doctorProfile.schedules.OnlineShedule.filter((slot) => {
@@ -800,7 +748,7 @@ export class DoctorService {
           doctorProfileId: doctorId,
           appointmentSlotDate: formatISO(date),
           type: mode,
-          status: {in:["APPROVED","PENDING"]},
+          status: { in: ['APPROVED', 'PENDING'] },
         },
         select: {
           appointmentSlotTime: true,
@@ -978,7 +926,7 @@ export class DoctorService {
           doctorProfileId: doctorId,
           // appointmentSlotDate: date,
           type: mode,
-          status: {in:["APPROVED","PENDING"]},
+          status: { in: ['APPROVED', 'PENDING'] },
         },
         select: {
           appointmentSlotTime: true,
@@ -1280,7 +1228,7 @@ export class DoctorService {
     }
   }
 
-  async doctorDashboardInfo(doctorProfileId: string,currentLocalTime:Date) {
+  async doctorDashboardInfo(doctorProfileId: string, currentLocalTime: Date) {
     // console.log(doctorProfileId);
     if (!doctorProfileId) {
       throw new BadRequestException('Invalid doctorProfileId');
@@ -1314,7 +1262,7 @@ export class DoctorService {
       });
 
       //getToday date
-      const today =currentLocalTime.toISOString().split('T')[0];
+      const today = currentLocalTime.toISOString().split('T')[0];
 
       // const todayAppointments = await this.prisma.appointment.count({
       //   where:{
@@ -1393,22 +1341,6 @@ export class DoctorService {
       throw new InternalServerErrorException('Internal Server Error');
     }
   }
-
-  // Fname:"Ranjit",
-  // Lname:"Das",
-  // address:{
-  //     address:"BBSR",
-  //     city:"BBSR",
-  //     country:"India",
-  //     pincode:"751024",
-  //     state:"Odisha"
-  // },
-  // bloodGroup:"O+",
-  // contact:"9631627104",
-  // dob:"2000-07-17",
-  // email:"21053420@kiit.ac.in",
-  // profilePic:"/assets/doctor-2.jpg",
-  // userId:"#PT_0112"
 
   async getPatients(doctorProfileId: string) {
     try {

@@ -39,6 +39,43 @@ export class createUserDto {
 //   medicalRecords MedicalRecord[]
 //   userId         String @unique
 
+export class UpdateUserDetailsDto {
+  @IsString()
+  Fname: string;
+
+  @IsString()
+  Lname: string;
+
+  @IsOptional()
+  @IsString()
+  dob: string;
+
+  @IsOptional()
+  @IsString()
+  gender: string;
+
+  @IsOptional()
+  @IsString()
+  bloodGroup: string;
+
+  @IsOptional()
+  @IsObject()
+  Address: {
+    address: string;
+    city: string;
+    state: string;
+    country: string;
+    pincode: string;
+  };
+
+  @IsString()
+  userId: string;
+
+  @IsString()
+  @IsOptional()
+  contact: string;
+}
+
 export class UpdatePatientsDetailsDto {
   @IsString()
   Fname: string;
@@ -91,149 +128,7 @@ enum Status {
   INITIATED,
 }
 
-export class UpdateUserDetailsDto {
-  @IsString()
-  Fname: string;
-
-  @IsString()
-  Lname: string;
-
-  @IsOptional()
-  @IsString()
-  dob: string;
-
-  @IsOptional()
-  @IsString()
-  gender: string;
-
-  @IsOptional()
-  @IsString()
-  bloodGroup: string;
-
-  @IsOptional()
-  @IsObject()
-  Address: {
-    address: string;
-    city: string;
-    state: string;
-    country: string;
-    pincode: string;
-  };
-
-  @IsString()
-  userId: string;
-
-  @IsString()
-  @IsOptional()
-  contact: string;
-}
-
-export class UpdateDoctorDetailsDto {
-  @IsString()
-  Fname: string;
-
-  @IsString()
-  Lname: string;
-
-  @IsOptional()
-  @IsString()
-  gender: string;
-
-  @IsString()
-  status: any;
-
-  @IsOptional()
-  @IsNumber()
-  age: number;
-
-  @IsOptional()
-  @IsString()
-  dob: string;
-
-  @IsOptional()
-  @IsString()
-  bloodGroup: string;
-
-  @IsOptional()
-  @IsObject()
-  address: {
-    address: string;
-    city: string;
-    state: string;
-    country: string;
-    pincode: string;
-  };
-
-  @IsString()
-  userId: string;
-
-  @IsString()
-  @IsOptional()
-  contact: string;
-
-  @IsOptional()
-  @IsNumber()
-  fee: number;
-
-  @IsOptional()
-  @IsArray()
-  specializations: string[];
-
-  @IsOptional()
-  @IsArray()
-  educations: { university: string; degree: string; duration: string }[];
-
-
-  @IsOptional()
-  @IsArray()
-  clinicInfo: { clinicName: string; address: string; contact: string,images:[]}[];
-
-
-  @IsOptional()
-  @IsArray()
-  workExperiences: { clinic: string; duration: string }[];
-
-  @IsOptional()
-  @IsArray()
-  awards: { title: string; date: string; description: string }[];
-
-  @IsObject()
-  @IsOptional()
-  schedules: {};
-
-  @IsBoolean()
-  @IsOptional()
-  isAvailableForDesk: boolean;
-
-  @IsString()
-  @IsOptional()
-  mode : string;
-
-  
-  @IsString()
-  @IsOptional()
-  description: string;
-  @IsString()
-  doctorProfileId: string;
-}
-
-
-
-
-export class UpdateSheduleDto{
-  @IsString()
-  doctorProfileId: string;
-
-  @IsObject()
-  shedule: {
-    OnlineShedule:[],
-    DeskShedule:[],
-    HomeShedule:[]
-  };
-}
-
-
-export class bookAppointmentDTO{
+export class bookAppointmentDTO {
   @IsString()
   doctorProfileId: string;
 
@@ -249,12 +144,11 @@ export class bookAppointmentDTO{
   @IsString()
   type: string;
 
-
   @IsObject()
-  currentLocation:{
+  currentLocation: {
     lat: number;
     long: number;
-  }
+  };
 
   @IsString()
   reason: string;
@@ -273,11 +167,9 @@ export class bookAppointmentDTO{
   @IsOptional()
   @IsString()
   othersEmail: string;
-
-
 }
 
-export class hybridBookAppointmentDTO{
+export class hybridBookAppointmentDTO {
   @IsString()
   homeDoctorId: string;
 
@@ -299,12 +191,11 @@ export class hybridBookAppointmentDTO{
   @IsString()
   v_slot: string;
 
-
   @IsObject()
-  currentLocation:{
+  currentLocation: {
     lat: number;
     long: number;
-  }
+  };
 
   @IsBoolean()
   isForOthers: boolean;
@@ -323,6 +214,4 @@ export class hybridBookAppointmentDTO{
   @IsOptional()
   @IsString()
   othersEmail: string;
-
-
 }

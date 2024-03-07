@@ -11,13 +11,13 @@ import {
 import { DoctorService } from './doctor.service';
 import { FileInterceptor } from '@nestjs/platform-express';
 import {
-  UpdateSheduleDto,
   bookAppointmentDTO,
   hybridBookAppointmentDTO,
 } from 'src/user/dto/user.dto';
 import { formatISO } from 'date-fns';
 import { GoogleMeetService } from 'src/google.service';
 import moment from 'moment';
+import { UpdateDoctorDetailsDto, UpdateSheduleDto } from './dto/dto';
 
 @Controller('doctor')
 export class DoctorController {
@@ -25,6 +25,17 @@ export class DoctorController {
     private readonly doctorService: DoctorService,
     private readonly meetService: GoogleMeetService,
   ) {}
+
+  @Post('updateDoctorProfile')
+  async updateDoctorProfile(@Body() doctorProfile: UpdateDoctorDetailsDto) {
+    console.log(doctorProfile);
+    return await this.doctorService.updateDoctorsProfileDetails(doctorProfile);
+  }
+
+  @Get('getDoctor/:userId')
+  async getDoctorById(@Param('userId') userId: string) {
+    return this.doctorService.getDoctorById(userId);
+  }
 
   @Post('updateShedules')
   async updateShedules(@Body() dto: UpdateSheduleDto) {
@@ -49,13 +60,13 @@ export class DoctorController {
     return this.doctorService.uploadDoctorProfile(dto.userId, file);
   }
 
-
-  getLocalTimezone(){
+  getLocalTimezone() {
     const currentDateInServerTimeZone = new Date();
 
-    // Calculate the time difference between the server's local time zone and the Indian Standard Time zone (IST)
-    const istOffsetMilliseconds = 5.5 * 60 * 60 * 1000; // IST is 5 hours and 30 minutes ahead of UTC
-    const s = new Date(currentDateInServerTimeZone.getTime() + istOffsetMilliseconds);
+    const istOffsetMilliseconds = 5.5 * 60 * 60 * 1000;
+    const s = new Date(
+      currentDateInServerTimeZone.getTime() + istOffsetMilliseconds,
+    );
     return s;
   }
 
@@ -69,14 +80,11 @@ export class DoctorController {
       clientCurrentTimezone: string;
     },
   ) {
-   
-
-  
-
-
-    return this.doctorService.getDoctorDetails(dto.username,this.getLocalTimezone(),dto.userId)
-
-              
+    return this.doctorService.getDoctorDetails(
+      dto.username,
+      this.getLocalTimezone(),
+      dto.userId,
+    );
   }
 
   @Get('getdoctorProfilebyVideo')
@@ -87,29 +95,30 @@ export class DoctorController {
       userId: string;
       slectedDateByClient: string;
       slot: string;
-
     },
   ) {
     // console.log(username,userId)
-
-    
 
     return this.doctorService.getSlotsByVideoConsult(
       dto.username,
       dto.slectedDateByClient,
       this.getLocalTimezone(),
-      dto.userId, 
+      dto.userId,
       dto.slot,
     );
-  }    
+  }
 
-  @Get('getdoctorProfilebyHome') 
+  @Get('getdoctorProfilebyHome')
   async getDoctorProfilebyHome(
-    @Query() dto: { username: string; userId: string},
+    @Query() dto: { username: string; userId: string },
   ) {
     // console.log(dto)
 
-    return this.doctorService.getSheduleByHome(dto.username,this.getLocalTimezone(),dto.userId);
+    return this.doctorService.getSheduleByHome(
+      dto.username,
+      this.getLocalTimezone(),
+      dto.userId,
+    );
   }
 
   @Post('checkDoctorAvailability')
@@ -152,10 +161,12 @@ export class DoctorController {
   }
 
   @Get('getDashInfo')
-  async getAppointments(@Query() dto: {userId:string}) {
-
-    console.log(dto)
-    return this.doctorService.doctorDashboardInfo(dto.userId,this.getLocalTimezone());
+  async getAppointments(@Query() dto: { userId: string }) {
+    console.log(dto);
+    return this.doctorService.doctorDashboardInfo(
+      dto.userId,
+      this.getLocalTimezone(),
+    );
   }
 
   @Get('getPatients/:doctorProfileId')
@@ -168,18 +179,13 @@ export class DoctorController {
     @Body()
     dto: {
       apptId: string;
-      doctorProfileId:string
+      doctorProfileId: string;
       userId: string;
       action: string;
     },
   ) {
     return this.doctorService.actionOnPatients(dto);
   }
-
-  // @Get("createMeeting")
-  // async createMeeting() {
-  //   return this.meetService.createMeeting();
-  // }
 
   @Get('getPatientsMedicalByDoctor')
   async getPatientsByIdByDoctor(
