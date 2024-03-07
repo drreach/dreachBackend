@@ -679,6 +679,8 @@ export class DoctorService {
       const selectedDate = new Date(slectedDateByClient);
       const isoDate = formatISO(selectedDate); //converting the to iso format
 
+      console.log(selectedDate,slectedDateByClient,isoDate)
+
 
       // get all appointments for the given date using Iso date
       const appointments = await this.prisma.appointment.findMany({

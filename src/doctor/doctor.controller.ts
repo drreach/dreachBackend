@@ -92,6 +92,8 @@ export class DoctorController {
   ) {
     // console.log(username,userId)
 
+    
+
     return this.doctorService.getSlotsByVideoConsult(
       dto.username,
       dto.slectedDateByClient,
@@ -149,8 +151,10 @@ export class DoctorController {
     return this.doctorService.hybridBookAppointment(dto);
   }
 
-  @Get('getDashInfo/:doctorProfileId')
+  @Get('getDashInfo')
   async getAppointments(@Query() dto: {userId:string}) {
+
+    console.log(dto)
     return this.doctorService.doctorDashboardInfo(dto.userId,this.getLocalTimezone());
   }
 

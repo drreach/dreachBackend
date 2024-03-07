@@ -686,14 +686,13 @@ export class UserService {
   //   }
   // }
 
-   convertToLocalTime(localTime: Date): Date {
-    // Adjust the local time to the USA timezone
-    // For example, if local timezone is UTC+5:30 and USA timezone is UTC-8,
-    // you'd subtract 13.5 hours (5:30 hours + 8 hours) from the local time
-    const usTimezoneOffset = -8 * 60; // Offset in minutes for US Pacific Time (UTC-8)
-    const serverTime = new Date(localTime.getTime() - (localTime.getTimezoneOffset() + usTimezoneOffset) * 60000);
-    
-    return serverTime;
+  getLocalTimezone(){
+    const currentDateInServerTimeZone = new Date();
+
+    // Calculate the time difference between the server's local time zone and the Indian Standard Time zone (IST)
+    const istOffsetMilliseconds = 5.5 * 60 * 60 * 1000; // IST is 5 hours and 30 minutes ahead of UTC
+    const s = new Date(currentDateInServerTimeZone.getTime() + istOffsetMilliseconds);
+    return s;
   }
 
   async getSlotsByVideoConsult(
@@ -742,7 +741,7 @@ export class UserService {
       const totalslotTime =
         parseInt(givenSlotHr) * 60 + parseInt(givenSlotMin) + 30;
 
-      const currentTime = this.convertToLocalTime(new Date());
+      const currentTime = this.getLocalTimezone();
       const currentDt = currentTime.getDate();
       const currentHours = currentTime.getHours();
       const currentMinutes = currentTime.getMinutes();
@@ -787,6 +786,8 @@ export class UserService {
 
   async findDoctorByVideoConsultation(dto: { date: string; slot: string }) {
     try {
+
+      console.log(dto.date)
       const doctors = await this.prisma.doctorProfile.findMany({
         where: {
           mode: 'VIDEO_CONSULT',
@@ -821,7 +822,7 @@ export class UserService {
         parseInt(dto.slot.split(':')[0]) * 60 +
         parseInt(dto.slot.split(':')[1]);
 
-      const currentTime = this.convertToLocalTime(new Date());
+      const currentTime = this.getLocalTimezone();
       const currentDt = currentTime.getDate();
       const currentHours = currentTime.getHours();
       const currentMinutes = currentTime.getMinutes();
