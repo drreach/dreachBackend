@@ -17,6 +17,7 @@ import {
 } from 'src/user/dto/user.dto';
 import { formatISO } from 'date-fns';
 import { GoogleMeetService } from 'src/google.service';
+import moment from 'moment';
 
 @Controller('doctor')
 export class DoctorController {
@@ -58,10 +59,21 @@ export class DoctorController {
       clientCurrentTimezone: string;
     },
   ) {
-    // console.log(username,userId)
-    console.log(dto);
+   
+  const currentDateInServerTimeZone = new Date();
 
-    return this.doctorService.getDoctorDetails(dto.username,new Date(dto.clientCurrentTimezone),dto.userId)
+  // Calculate the time difference between the server's local time zone and the Indian Standard Time zone (IST)
+  const istOffsetMilliseconds = 5.5 * 60 * 60 * 1000; // IST is 5 hours and 30 minutes ahead of UTC
+  
+  // Adjust the time to reflect the Indian Standard Time zone (IST)
+
+  const t = `${currentDateInServerTimeZone.getTime()+istOffsetMilliseconds}`;
+  const s = new Date(currentDateInServerTimeZone.getTime() + istOffsetMilliseconds);
+  
+
+    console.log(s);
+
+    return this.doctorService.getDoctorDetails(dto.username,s,dto.userId)
 
               
   }
