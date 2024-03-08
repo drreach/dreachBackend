@@ -233,11 +233,17 @@ export class UserService {
     }
   }
 
-  async findDoctorsList(dto: { speciality: string; address: string }) {
+  async findDoctorsList(dto: { speciality: string; address: string,mode:string }) {
+
+    const whereClause={
+      Status: 'APPROVED',
+      mode:{}
+    }
     try {
       const doctor = await this.prisma.doctorProfile.findMany({
         where: {
           status: 'APPROVED',
+          mode:dto.mode==="NONE"?{}:dto.mode==="CLINIC_VISIT"?"VIDEO_CONSULT":dto.mode
         },
         select: {
           id: true,
@@ -316,7 +322,7 @@ export class UserService {
         }
       });
 
-      return filteredDoctor;
+      return dto.mode==="CLINIC_VISIT"?filteredDoctor.filter((d)=>d.isAvailableForDesk):filteredDoctor;
     } catch (error) {
       console.log(error);
       throw new InternalServerErrorException('Internal Server Error!');
@@ -694,4 +700,48 @@ export class UserService {
       throw new InternalServerErrorException('Internal Server Error');
     }
   }
+
+  async getPopularDoctors() {
+    try {
+      const doctorsWithAppointments = await this.prisma.doctorProfile.findMany({
+        where: {
+          status: 'APPROVED',
+        },
+        include: {
+          appointments: true,
+          user:true // Include appointments associated with each doctor
+        },
+      });
+  
+      // Calculate the appointment count for each doctor
+      const doctorsWithAppointmentCounts = doctorsWithAppointments.map(doctor => ({
+        doctor,
+        appointmentCount: doctor.appointments.length, // Get the length of appointments array
+      }));
+  
+      // Sort doctors by appointment count in descending order
+      doctorsWithAppointmentCounts.sort((a, b) => b.appointmentCount - a.appointmentCount);
+  
+      // Get the top 5 popular doctors
+      const popularDoctors = doctorsWithAppointmentCounts.slice(0, 4);
+  
+      // Extract doctor details for the response
+      const popularDoctorsDetails = popularDoctors.map(({ doctor }) => ({
+        id: doctor.id,
+        specializations: doctor.specializations,
+        user: {
+          Fname: doctor.user.Fname,
+          Lname: doctor.user.Lname,
+          profilePic: doctor.user.profilePic,
+          username: doctor.user.username,
+        },
+      }));
+  
+      return popularDoctorsDetails;
+    } catch (error) {
+      console.log(error);
+      throw new InternalServerErrorException('Internal Server Error!');
+    }
+  }
+  
 }

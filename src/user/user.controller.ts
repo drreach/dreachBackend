@@ -53,7 +53,7 @@ export class UserController {
   }
 
   @Get('findDoctorList')
-  async findDoctorList(@Query() dto: { speciality: string; address: string }) {
+  async findDoctorList(@Query() dto: { speciality: string; address: string,mode:string }) {
     console.log(dto);
     return this.userService.findDoctorsList(dto);
   }
@@ -88,5 +88,10 @@ export class UserController {
   ) {
     console.log(dto);
     return this.userService.addReview(dto);
+  }
+
+  @Get("getPopularDoctors")
+  async getPopularDoctors(){
+    return this.userService.getPopularDoctors();
   }
 }
