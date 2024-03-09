@@ -14,12 +14,18 @@ import { NotFoundError } from 'rxjs';
 import { v4 as uuidv4 } from 'uuid';
 import { UtilsService } from 'src/utils/utils.service';
 import { formatISO } from 'date-fns';
+import { StorageService } from 'src/storage/storage.service';
+import * as sharp from 'sharp';
+
+import * as fs from 'fs';
+import { Readable } from 'stream';
 
 @Injectable()
 export class UserService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly utils: UtilsService,
+    private readonly storageService: StorageService,
   ) {}
 
   async createUser(email: string) {
@@ -73,7 +79,7 @@ export class UserService {
 
         dob: doctorProfile.dob,
         bloodGroup: doctorProfile.bloodGroup as any,
-        address: doctorProfile.Address,
+        // address: doctorProfile.Address,
         contact: doctorProfile.contact,
       },
     });
@@ -83,6 +89,55 @@ export class UserService {
 
     return updatedUser;
   }
+
+  async generateMediaId() {
+    return await this.storageService.generateMediaId();
+  }
+
+
+  async uploadDoctorProfile(dto: UpdateUserDetailsDto, file?: Express.Multer.File,) {
+    try {
+      const {userId,...res}=dto;
+      if (file) {
+        const user = await this.prisma.user.findUnique({
+          where: {
+            id:userId,
+          },
+        });
+        if (!user) throw new UnauthorizedException('Unauthorized Access');
+
+        const profileId = user.profilePic;
+        if (profileId) {
+          await this.storageService.delete('doctorProfile/' + profileId);
+        }
+        const mediaId = await this.generateMediaId();
+        const filebuffer = await sharp(file.buffer)
+          .webp({ quality: 80 }) // Adjust quality as needed
+          .toBuffer();
+        const p = await this.storageService.save(
+          'doctorProfile/' + mediaId,
+          'image/webp', // Set the mimetype for WebP
+          filebuffer,
+          [{ mediaId: mediaId }],
+        );
+        const update = await this.prisma.user.update({
+          where: {
+            id: userId,
+          },
+          data: {
+            profilePic: p.mediaId,
+            ...res
+
+          },
+        });
+        return update.profilePic ?? null;
+      }
+    } catch (error) {
+      console.log(error);
+      throw new InternalServerErrorException('Internal Server Error');
+    }
+  }
+
 
   async createDoctorProfile(userId: string) {
     try {
@@ -117,42 +172,95 @@ export class UserService {
     }
   }
 
-  async updatePatientsProfile(patients: UpdateUserDetailsDto) {
+  private async streamToBuffer(stream: Readable): Promise<Buffer> {
+    return new Promise((resolve, reject) => {
+      const chunks: Buffer[] = [];
+      stream.on('data', (chunk) => chunks.push(chunk));
+      stream.on('error', reject);
+      stream.on('end', () => resolve(Buffer.concat(chunks)));
+    });
+  }
+
+  async updatePatientsProfile(patients: UpdateUserDetailsDto, file?: Express.Multer.File) {
     try {
       const {
         userId,
         Fname,
-        Lname,
+        Lname, 
         dob,
         bloodGroup,
         Address,
         contact,
         ...res
-      } = patients;
+      } = patients; 
 
-      const user = await this.prisma.user.findUnique({
-        where: {
-          id: userId,
-        },
-      });
+      if (file) {
+        const u = await this.prisma.user.findUnique({
+          where: {
+            id:userId,
+          },
+        });
+        if (!u) throw new UnauthorizedException('Unauthorized Access');
 
-      if (!user) throw new NotFoundException('User not found');
+        const profileId = u.profilePic;
+        if (profileId) {
+          await this.storageService.delete('doctorProfile/' + profileId);
+        }
+        const mediaId = await this.generateMediaId();
+        const buffer = await fs.createReadStream(file.path); 
+
+        const fb = await this.streamToBuffer(buffer);
+
+        const filebuffer = await sharp(fb)
+          .webp({ quality: 80 }) // Adjust quality as needed
+          .toBuffer();
+        const p = await this.storageService.save(
+          'doctorProfile/' + mediaId,
+          'image/webp', // Set the mimetype for WebP
+          filebuffer,
+          [{ mediaId: mediaId }],
+        );
+
+        if(p){
+           fs.unlinkSync(file.path);
+        }
+
+        return  await this.prisma.user.update({
+          where: {
+            id: userId,
+          },
+          data: {
+            Fname: Fname,
+            Lname: Lname,
+            dob: dob,
+            bloodGroup: bloodGroup as any,
+            address:Address as any,
+            gender: patients.gender ,
+            contact: contact,
+            profilePic: p.mediaId,
+            ...res
+          },
+        });
+
+      }
 
       const updatedUser = await this.prisma.user.update({
         where: {
           id: userId,
         },
         data: {
+
           Fname: patients.Fname,
           Lname: patients.Lname,
           dob: patients.dob,
           bloodGroup: patients.bloodGroup as any,
-          address: patients.Address,
+          address:patients.Address as any,
           contact: patients.contact,
           gender: patients.gender as any,
+          
         },
       });
-
+    
       if (!updatedUser)
         throw new InternalServerErrorException('Something went wrong');
 

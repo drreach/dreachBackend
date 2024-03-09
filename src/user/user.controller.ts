@@ -6,11 +6,14 @@ import {
   Patch,
   Post,
   Query,
+  UploadedFile,
   UseGuards,
+  UseInterceptors,
 } from '@nestjs/common';
 import { UserService } from './user.service';
 import { JWTGuard } from 'src/auth/guard/jtw.guard';
-import { UpdateUserDetailsDto } from './dto/user.dto';
+import { Address, UpdateUserDetailsDto } from './dto/user.dto';
+import { FileInterceptor } from '@nestjs/platform-express';
 
 @Controller('user')
 export class UserController {
@@ -29,10 +32,25 @@ export class UserController {
   }
 
   //updating the existing user
+  // @Post('updateUser')
+  // async updateUser(@Body() dto: UpdateUserDetailsDto) {
+  //   console.log(dto);
+  //   return this.userService.updatePatientsProfile(dto);
+  // }
+
+
   @Post('updateUser')
-  async updateUser(@Body() dto: UpdateUserDetailsDto) {
-    console.log(dto);
-    return this.userService.updatePatientsProfile(dto);
+  @UseInterceptors(FileInterceptor('profileImage'))
+  async uploadDoctorProfile(
+    @UploadedFile() file: Express.Multer.File,
+    @Body() dto: UpdateUserDetailsDto,
+  ) {
+    
+    const {Address,...res } = dto;
+    const address = JSON.parse(Address);
+    console.log(file, address,res);
+
+    return this.userService.updatePatientsProfile({Address:address,...res}, file);
   }
 
   //getting the user profile using user Id

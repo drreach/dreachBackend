@@ -47,7 +47,7 @@ model User {
   Lname      String?
   email      String      @unique
   age        Int?
-  gender     Gender?
+  gender     String?
   dob        String?
   bloodGroup BloodGroup?
   address    Address?

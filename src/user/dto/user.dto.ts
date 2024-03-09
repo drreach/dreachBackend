@@ -1,3 +1,4 @@
+import { Transform, TransformFnParams, Type } from 'class-transformer';
 import {
   IsArray,
   IsBoolean,
@@ -39,6 +40,24 @@ export class createUserDto {
 //   medicalRecords MedicalRecord[]
 //   userId         String @unique
 
+
+export class Address {
+  @IsString()
+  address: string;
+
+  @IsString()
+  city: string;
+
+  @IsString()
+  state: string;
+
+  @IsString()
+  country: string;
+
+  @IsString()
+  pincode: string;
+}
+
 export class UpdateUserDetailsDto {
   @IsString()
   Fname: string;
@@ -56,24 +75,22 @@ export class UpdateUserDetailsDto {
 
   @IsOptional()
   @IsString()
-  bloodGroup: string;
+  bloodGroup: any;
 
   @IsOptional()
-  @IsObject()
-  Address: {
-    address: string;
-    city: string;
-    state: string;
-    country: string;
-    pincode: string;
-  };
+  @IsJSON()
+  @IsJSON()
+  Address: string;
 
   @IsString()
   userId: string;
 
+
   @IsString()
   @IsOptional()
   contact: string;
+
+  
 }
 
 export class UpdatePatientsDetailsDto {
@@ -96,8 +113,8 @@ export class UpdatePatientsDetailsDto {
   bloodGroup: string;
 
   @IsOptional()
-  @IsString()
-  address: string;
+  // @Isan()
+  address: any;
 
   @IsOptional()
   @IsString()
