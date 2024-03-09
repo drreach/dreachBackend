@@ -211,3 +211,7 @@ type CurreLocationLocation {
   lat  Float
   long Float
 }
+
+
+
+
