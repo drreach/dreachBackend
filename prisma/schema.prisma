@@ -42,24 +42,26 @@ enum BloodGroup {
 
 model User {
   id         String      @id @default(auto()) @map("_id") @db.ObjectId
-  username   String      @unique
+  username   String?      @unique
+  phone     String      @unique
+  otp        String?
   Fname      String?
   Lname      String?
-  email      String      @unique
+  email      String?      @unique
   age        Int?
+  password   String
   gender     String?
   dob        String?
   bloodGroup BloodGroup?
   address    Address?
-  contact    String?
-  isActive   Boolean     @default(true)
+  isActive   Boolean     @default(false)
   profilePic String?
 
   role           Role // Enum: "NORMAL", "DOCTOR", "ADMIN"
   doctorProfile  DoctorProfile?
   appointments   Appointment[]
   medicalRecords MedicalRecord[]
-  userId         String          @unique
+  // userId         String          @unique
   createdAt      DateTime        @default(now())
   updatedAt      DateTime        @updatedAt
   Rating         Rating[]
