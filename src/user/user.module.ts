@@ -6,8 +6,14 @@ import { JwtService } from '@nestjs/jwt';
 import { UtilsService } from 'src/utils/utils.service';
 import { StorageService } from 'src/storage/storage.service';
 
-@Module({ 
+@Module({
   controllers: [UserController],
-  providers: [UserService,PrismaService,JwtService,UtilsService,StorageService]
+  providers: [
+    UserService,
+    PrismaService,
+    JwtService,
+    UtilsService,
+    StorageService,
+  ],
 })
 export class UserModule {}

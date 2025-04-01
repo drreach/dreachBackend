@@ -6,7 +6,7 @@ import { StorageService } from 'src/storage/storage.service';
 // import { GoogleMeetService } from 'src/google.service';
 
 @Module({
-  providers: [DoctorService,PrismaService,StorageService],
-  controllers: [DoctorController]
+  providers: [DoctorService, PrismaService, StorageService],
+  controllers: [DoctorController],
 })
 export class DoctorModule {}

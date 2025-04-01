@@ -19,23 +19,29 @@ import { FileInterceptor } from '@nestjs/platform-express';
 export class UserController {
   constructor(private userService: UserService) {}
 
-
   @Post('register')
-  async authinticate(@Body() dto: {phone:string,firstName:string,lastName:string,password:string}) {
-    console.log(dto)
+  async authinticate(
+    @Body()
+    dto: {
+      phone: string;
+      firstName: string;
+      lastName: string;
+      password: string;
+    },
+  ) {
+    console.log(dto);
     return this.userService.registerUser(dto);
   }
 
   @Post('verifyUserRegistration')
-  async verifyUserRegistration(@Body() dto: {phone:string,otp:number}) {
-    console.log(dto)
-    return this.userService.verifyUserRegistration(dto.phone,dto.otp);
+  async verifyUserRegistration(@Body() dto: { phone: string; otp: number }) {
+    console.log(dto);
+    return this.userService.verifyUserRegistration(dto.phone, dto.otp);
   }
 
-
   @Post('login')
-  async login(@Body() dto: {phone:string,password:string}) {
-    console.log(dto)
+  async login(@Body() dto: { phone: string; password: string }) {
+    console.log(dto);
     return this.userService.login(dto);
   }
   // @Post('verifyOtp')
@@ -63,14 +69,13 @@ export class UserController {
   // //   return this.userService.updatePatientsProfile(dto);
   // // }
 
-
   // @Post('updateUser')
   // @UseInterceptors(FileInterceptor('profileImage'))
   // async uploadDoctorProfile(
   //   @UploadedFile() file: Express.Multer.File,
   //   @Body() dto: UpdateUserDetailsDto,
   // ) {
-    
+
   //   const {Address,...res } = dto;
   //   const address = JSON.parse(Address);
   //   console.log(file, address,res);

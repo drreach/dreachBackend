@@ -40,7 +40,6 @@ export class createUserDto {
 //   medicalRecords MedicalRecord[]
 //   userId         String @unique
 
-
 export class Address {
   @IsString()
   address: string;
@@ -85,12 +84,9 @@ export class UpdateUserDetailsDto {
   @IsString()
   userId: string;
 
-
   @IsString()
   @IsOptional()
   contact: string;
-
-  
 }
 
 export class UpdatePatientsDetailsDto {

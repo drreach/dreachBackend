@@ -19,19 +19,34 @@ import { AdminService } from './admin/admin.service';
 import { redisStore } from 'cache-manager-redis-yet';
 import { CacheModule } from '@nestjs/cache-manager';
 
-
-
 @Module({
-  imports: [UserModule, AuthModule,ConfigModule.forRoot(), UtilsModule, DoctorModule,MulterModule.register({
-    dest: './uploads', // Set your upload directory
-  }), AdminModule ,CacheModule.register({ 
-    store: redisStore, 
-    isGlobal:true,
-    host: 'localhost', //default host
-    port: 6379, //default port,
-    ttl: 100000000000, // seconds
-  })],
-  controllers: [UserController,AuthController, AdminController,],
-  providers: [AuthService,PrismaService,UserService,JwtService,UtilsService, StorageService,AdminService],
+  imports: [
+    UserModule,
+    AuthModule,
+    ConfigModule.forRoot(),
+    UtilsModule,
+    DoctorModule,
+    MulterModule.register({
+      dest: './uploads', // Set your upload directory
+    }),
+    AdminModule,
+    CacheModule.register({
+      store: redisStore,
+      isGlobal: true,
+      host: 'localhost', //default host
+      port: 6379, //default port,
+      ttl: 100000000000, // seconds
+    }),
+  ],
+  controllers: [UserController, AuthController, AdminController],
+  providers: [
+    AuthService,
+    PrismaService,
+    UserService,
+    JwtService,
+    UtilsService,
+    StorageService,
+    AdminService,
+  ],
 })
 export class AppModule {}

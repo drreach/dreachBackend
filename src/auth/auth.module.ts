@@ -9,6 +9,13 @@ import { StorageService } from 'src/storage/storage.service';
 
 @Module({
   controllers: [AuthController],
-  providers:[UserService,PrismaService,JwtService,AuthService,UtilsService,StorageService]
+  providers: [
+    UserService,
+    PrismaService,
+    JwtService,
+    AuthService,
+    UtilsService,
+    StorageService,
+  ],
 })
 export class AuthModule {}

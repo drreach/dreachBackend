@@ -912,7 +912,7 @@ export class UserService {
       };
     } catch (error) {
       console.log(error);
-      if(error instanceof ConflictException){
+      if (error instanceof ConflictException) {
         throw error;
       }
       throw new InternalServerErrorException('Internal Server Error');
